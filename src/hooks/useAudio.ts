@@ -1,59 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-export const useAudio = (url: string, autoPlay: boolean = true) => {
-  const [audio] = useState(new Audio(url));
-  const [playing, setPlaying] = useState(true);  // Changed to true by default
+export const useAudio = (url: string) => {
+  const [themeAudio] = useState(new Audio(url));
+  const [startupAudio] = useState(new Audio('/sounds/pac-man-start.mp3'));
+  const [playing, setPlaying] = useState(true);
+
+  const startGame = useCallback(() => {
+    startupAudio.pause();
+    startupAudio.currentTime = 0;
+    themeAudio.volume = 0.15;
+    themeAudio.loop = true;
+    themeAudio.play().catch(console.error);
+  }, [startupAudio, themeAudio]);
+
+  const toggle = useCallback(() => {
+    if (playing) {
+      themeAudio.pause();
+    } else {
+      themeAudio.play().catch(console.error);
+    }
+    setPlaying(!playing);
+  }, [playing, themeAudio]);
 
   useEffect(() => {
-    audio.volume = 0.15;
-    audio.loop = true;
-
-    // Play startup sound first
-    const startupSound = new Audio('/sounds/pac-man-start.mp3');
-    startupSound.volume = 0.3;
-    
-    const startGame = async () => {
-      try {
-        await startupSound.play();
-        // Wait for 5 seconds before playing theme
-        setTimeout(async () => {
-          await audio.play();
-          setPlaying(true);
-        }, 5000);
-      } catch (error) {
-        console.error("Audio playback failed:", error);
-      }
-    };
-
-    startGame();
+    startupAudio.volume = 0.3;
+    startupAudio.play().catch(console.error);
 
     return () => {
-      audio.pause();
-      startupSound.pause();
+      startupAudio.pause();
+      themeAudio.pause();
     };
-  }, [audio]);
+  }, [startupAudio, themeAudio]);
 
-  const toggle = async () => {
-    try {
-      if (playing) {
-        audio.pause();
-      } else {
-        await audio.play();
-      }
-      setPlaying(!playing);
-    } catch (error) {
-      console.error("Audio toggle failed:", error);
-    }
-  };
-
-  return { playing, toggle };
+  return { playing, toggle, startGame };
 };
 
 export const playMoveSound = () => {
   const moveSound = new Audio('/sounds/pac-man-waka-waka.mp3');
   moveSound.volume = 0.2;
   moveSound.play().catch(console.error);
-  // Stop the sound after 0.5 seconds
   setTimeout(() => {
     moveSound.pause();
     moveSound.currentTime = 0;

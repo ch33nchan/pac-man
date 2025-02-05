@@ -3,9 +3,9 @@ import { GiCircle } from 'react-icons/gi';
 import { FaGhost } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAudio, playMoveSound, playEatFruitSound } from '../hooks/useAudio';
+import Welcome from './Welcome';
 
 const GRID_SIZE = 15;
-const CHOMP_SOUND = '/sounds/pacman_chomp.mp3';
 const THEME_SOUND = '/sounds/pacman_theme.mp3';
 
 interface Section {
@@ -25,19 +25,21 @@ const sections: Section[] = [
 
 export const PacmanWorld: React.FC = () => {
   const navigate = useNavigate();
-  const { playing, toggle } = useAudio(THEME_SOUND, true);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [direction, setDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
+  const { playing, toggle, startGame } = useAudio(THEME_SOUND);
 
-  // Handle section reached
-  const handleSectionReached = (section: Section) => {
-    playEatFruitSound();
-    navigate(section.path);
+  const handleBegin = () => {
+    setShowWelcome(false);
+    startGame();
   };
 
+  // Add movement controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      e.preventDefault(); // Prevent default key behavior
+      if (showWelcome) return; // Disable movement when welcome screen is shown
+
       const key = e.key.toLowerCase();
       let newPos = { ...position };
       let moved = false;
@@ -80,20 +82,22 @@ export const PacmanWorld: React.FC = () => {
       if (moved) {
         playMoveSound();
         setPosition(newPos);
-        
+
         const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
         if (section) {
-          handleSectionReached(section);
+          playEatFruitSound();
+          navigate(section.path);
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [position]);
+  }, [position, showWelcome, navigate]);
 
   return (
     <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center relative">
+      {showWelcome && <Welcome onBegin={handleBegin} />}
       <button 
         onClick={() => navigate('/')}
         className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
