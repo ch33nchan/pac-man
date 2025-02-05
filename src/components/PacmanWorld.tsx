@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GiCircle } from 'react-icons/gi';
 import { FaGhost } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { useAudio, playChompSound } from '../hooks/useAudio';
+import { useAudio, playMoveSound, playEatFruitSound } from '../hooks/useAudio';
 
 const GRID_SIZE = 15;
 const CHOMP_SOUND = '/sounds/pacman_chomp.mp3';
@@ -31,51 +31,66 @@ export const PacmanWorld: React.FC = () => {
 
   // Handle section reached
   const handleSectionReached = (section: Section) => {
-    playChompSound();
+    playEatFruitSound();
     navigate(section.path);
   };
 
-  // Handle keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      e.preventDefault(); // Prevent default key behavior
       const key = e.key.toLowerCase();
       let newPos = { ...position };
+      let moved = false;
 
       switch (key) {
         case 'w':
         case 'arrowup':
-          newPos.y = Math.max(0, position.y - 1);
-          setDirection('up');
+          if (position.y > 0) {
+            newPos.y = position.y - 1;
+            moved = true;
+            setDirection('up');
+          }
           break;
         case 's':
         case 'arrowdown':
-          newPos.y = Math.min(GRID_SIZE - 1, position.y + 1);
-          setDirection('down');
+          if (position.y < GRID_SIZE - 1) {
+            newPos.y = position.y + 1;
+            moved = true;
+            setDirection('down');
+          }
           break;
         case 'a':
         case 'arrowleft':
-          newPos.x = Math.max(0, position.x - 1);
-          setDirection('left');
+          if (position.x > 0) {
+            newPos.x = position.x - 1;
+            moved = true;
+            setDirection('left');
+          }
           break;
         case 'd':
         case 'arrowright':
-          newPos.x = Math.min(GRID_SIZE - 1, position.x + 1);
-          setDirection('right');
+          if (position.x < GRID_SIZE - 1) {
+            newPos.x = position.x + 1;
+            moved = true;
+            setDirection('right');
+          }
           break;
       }
 
-      setPosition(newPos);
-
-      // Check if Pacman reached a section
-      const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
-      if (section) {
-        handleSectionReached(section);
+      if (moved) {
+        playMoveSound();
+        setPosition(newPos);
+        
+        const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
+        if (section) {
+          handleSectionReached(section);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [position, navigate]);
+  }, [position]);
 
   return (
     <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center relative">
