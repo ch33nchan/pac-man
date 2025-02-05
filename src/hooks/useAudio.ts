@@ -1,20 +1,32 @@
 import { useState, useEffect } from 'react';
 
-export const useAudio = (url: string) => {
+export const useAudio = (url: string, autoPlay: boolean = true) => {
   const [audio] = useState(new Audio(url));
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(autoPlay);
 
   useEffect(() => {
-    audio.volume = 0.3; // Reduce volume to 30%
+    audio.volume = 0.3;
     audio.loop = true;
-    audio.play().catch(console.error);
-    setPlaying(true);
-    
+
+    const playAudio = async () => {
+      try {
+        if (autoPlay) {
+          await audio.play();
+          setPlaying(true);
+        }
+      } catch (error) {
+        console.error("Audio playback failed:", error);
+        setPlaying(false);
+      }
+    };
+
+    playAudio();
+
     return () => {
       audio.pause();
       audio.currentTime = 0;
     };
-  }, [audio]);
+  }, [audio, autoPlay]);
 
   const toggle = () => {
     if (playing) {
@@ -26,4 +38,10 @@ export const useAudio = (url: string) => {
   };
 
   return { playing, toggle };
+};
+
+export const playChompSound = () => {
+  const chompSound = new Audio('/sounds/pacman_chomp.mp3');
+  chompSound.volume = 0.4;
+  chompSound.play().catch(console.error);
 };

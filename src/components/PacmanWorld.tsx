@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GiCircle } from 'react-icons/gi';
 import { FaGhost } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { useAudio } from '../hooks/useAudio';
+import { useAudio, playChompSound } from '../hooks/useAudio';
 
 const GRID_SIZE = 15;
 const CHOMP_SOUND = '/sounds/pacman_chomp.mp3';
@@ -25,9 +25,15 @@ const sections: Section[] = [
 
 export const PacmanWorld: React.FC = () => {
   const navigate = useNavigate();
-  const { playing, toggle } = useAudio(THEME_SOUND);
+  const { playing, toggle } = useAudio(THEME_SOUND, true);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [direction, setDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
+
+  // Handle section reached
+  const handleSectionReached = (section: Section) => {
+    playChompSound();
+    navigate(section.path);
+  };
 
   // Handle keyboard controls
   useEffect(() => {
@@ -63,7 +69,7 @@ export const PacmanWorld: React.FC = () => {
       // Check if Pacman reached a section
       const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
       if (section) {
-        navigate(section.path);
+        handleSectionReached(section);
       }
     };
 
@@ -72,7 +78,14 @@ export const PacmanWorld: React.FC = () => {
   }, [position, navigate]);
 
   return (
-    <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center relative">
+      <button 
+        onClick={() => navigate('/')}
+        className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+      >
+        ← Back
+      </button>
+
       <button 
         onClick={toggle}
         className="absolute top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
