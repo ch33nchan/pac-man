@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GiCircle } from 'react-icons/gi';
 import { FaGhost } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useAudio } from '../hooks/useAudio';
 
 const GRID_SIZE = 15;
 const CHOMP_SOUND = '/sounds/pacman_chomp.mp3';
@@ -15,110 +16,71 @@ interface Section {
   path: string;
 }
 
-export default function PacmanWorld() {
+const sections: Section[] = [
+  { x: 5, y: 5, icon: <FaGhost className="text-red-500" />, label: 'Resume', path: '/resume' },
+  { x: 10, y: 5, icon: <FaGhost className="text-blue-500" />, label: 'Skills', path: '/skills' },
+  { x: 5, y: 10, icon: <FaGhost className="text-pink-500" />, label: 'Projects', path: '/projects' },
+  { x: 10, y: 10, icon: <FaGhost className="text-orange-500" />, label: 'Contact', path: '/contact' }
+];
+
+export const PacmanWorld: React.FC = () => {
   const navigate = useNavigate();
-  const [position, setPosition] = useState({ x: 7, y: 7 });
-  const [isMuted, setIsMuted] = useState(false);
-  const chompAudioRef = useRef(new Audio(CHOMP_SOUND));
-  const themeAudioRef = useRef(new Audio(THEME_SOUND));
+  const { playing, toggle } = useAudio(THEME_SOUND);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [direction, setDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
 
-  const sections: Section[] = [
-    { x: 2, y: 2, icon: <FaGhost className="text-pink-400" />, label: 'Resume', path: '/resume' },
-    { x: 12, y: 2, icon: <FaGhost className="text-cyan-400" />, label: 'Skills', path: '/skills' },
-    { x: 2, y: 12, icon: <FaGhost className="text-orange-400" />, label: 'Projects', path: '/projects' },
-    { x: 12, y: 12, icon: <FaGhost className="text-red-400" />, label: 'Contact', path: '/contact' },
-  ];
-
-  // Initialize audio settings
-  useEffect(() => {
-    const themeAudio = themeAudioRef.current;
-    const chompAudio = chompAudioRef.current;
-    
-    themeAudio.loop = true;
-    themeAudio.volume = 0.1;
-    chompAudio.volume = 0.8;
-    
-    // Auto-play theme music
-    themeAudio.play().catch(e => console.log('Audio autoplay blocked'));
-
-    return () => {
-      themeAudio.pause();
-      chompAudio.pause();
-    };
-  }, []);
-
-  // Handle section collision and sound
-  useEffect(() => {
-    const currentSection = sections.find((s: Section) => s.x === position.x && s.y === position.y);
-    if (currentSection) {
-      const chompAudio = chompAudioRef.current;
-      const playChompTwice = async () => {
-        chompAudio.currentTime = 0;
-        await chompAudio.play();
-        setTimeout(async () => {
-          chompAudio.currentTime = 0;
-          await chompAudio.play();
-          setTimeout(() => navigate(currentSection.path), 150);
-        }, 150);
-      };
-      
-      playChompTwice().catch(e => console.log('Chomp sound blocked'));
-    }
-  }, [position, navigate]);
-
-  // Add keyboard controls
+  // Handle keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      e.preventDefault();
       const key = e.key.toLowerCase();
-      
-      setPosition(prev => {
-        const newPos = { ...prev };
-        switch (key) {
-          case 'w':
-          case 'arrowup':
-            newPos.y = Math.max(0, prev.y - 1);
-            break;
-          case 's':
-          case 'arrowdown':
-            newPos.y = Math.min(GRID_SIZE - 1, prev.y + 1);
-            break;
-          case 'a':
-          case 'arrowleft':
-            newPos.x = Math.max(0, prev.x - 1);
-            break;
-          case 'd':
-          case 'arrowright':
-            newPos.x = Math.min(GRID_SIZE - 1, prev.x + 1);
-            break;
-        }
-        return newPos;
-      });
+      let newPos = { ...position };
+
+      switch (key) {
+        case 'w':
+        case 'arrowup':
+          newPos.y = Math.max(0, position.y - 1);
+          setDirection('up');
+          break;
+        case 's':
+        case 'arrowdown':
+          newPos.y = Math.min(GRID_SIZE - 1, position.y + 1);
+          setDirection('down');
+          break;
+        case 'a':
+        case 'arrowleft':
+          newPos.x = Math.max(0, position.x - 1);
+          setDirection('left');
+          break;
+        case 'd':
+        case 'arrowright':
+          newPos.x = Math.min(GRID_SIZE - 1, position.x + 1);
+          setDirection('right');
+          break;
+      }
+
+      setPosition(newPos);
+
+      // Check if Pacman reached a section
+      const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
+      if (section) {
+        navigate(section.path);
+      }
     };
 
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
-
-  const toggleMute = () => {
-    const themeAudio = themeAudioRef.current;
-    const chompAudio = chompAudioRef.current;
-    
-    themeAudio.muted = !isMuted;
-    chompAudio.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [position, navigate]);
 
   return (
-    <div className="min-h-screen bg-black p-8 flex flex-col justify-center items-center relative">
+    <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center">
       <button 
-        onClick={toggleMute}
+        onClick={toggle}
         className="absolute top-4 right-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
       >
-        {isMuted ? '🔇' : '🔊'}
+        {playing ? '🔊' : '🔇'}
       </button>
 
-      <div className="grid grid-cols-15 gap-0">
+      <div className="grid grid-cols-15 gap-0 bg-black border-4 border-blue-500">
         {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, idx) => {
           const x = idx % GRID_SIZE;
           const y = Math.floor(idx / GRID_SIZE);
@@ -142,4 +104,6 @@ export default function PacmanWorld() {
       </div>
     </div>
   );
-}
+};
+
+export default PacmanWorld;
