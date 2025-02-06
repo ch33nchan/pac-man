@@ -1,7 +1,9 @@
+const theme = require('./src/config/tailwind.theme');
 module.exports = {
 	content: ["./src/**/*.{js,ts,jsx,tsx}"],
 	darkMode: "media", // or 'class'
 	theme: {
+		...theme,
 		screens: {
 			sm: "640px",
 			md: "768px",
@@ -601,11 +603,21 @@ module.exports = {
 			bounce: {
 				"0%, 100%": {
 					transform: "translateY(-25%)",
-					animationTimingFunction: "cubic-bezier(0.8,0,1,1)",
+					animationTimingFunction: "cubic-bezier(0.8, 0, 1, 1)",
 				},
 				"50%": {
-					transform: "none",
-					animationTimingFunction: "cubic-bezier(0,0,0.2,1)",
+					transform: "translateY(0)",
+					animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
+				},
+			},
+			"bounce-custom": {
+				"0%, 100%": {
+					transform: "translateY(-15px) rotate(-3deg)",
+					animationTimingFunction: "cubic-bezier(0.8, 0, 1, 1)",
+				},
+				"50%": {
+					transform: "translateY(0) rotate(3deg)",
+					animationTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
 				},
 			},
 			reveal: {
@@ -614,7 +626,7 @@ module.exports = {
 					animationTimingFunction: "cubic-bezier(0.8,0,1,1)",
 					opacity: "0",
 				},
-				"1050%": {
+				"100%": {
 					transform: "none",
 					opacity: "1",
 					animationTimingFunction: "cubic-bezier(0,0,0.2,1)",
