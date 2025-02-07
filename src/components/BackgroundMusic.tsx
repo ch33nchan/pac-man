@@ -1,42 +1,59 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const BackgroundMusic = () => {
+const BackgroundMusic: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startupSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pacman-start.mp3'));
+  const backgroundSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pacman-background.mp3'));
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.2;
-      audioRef.current.loop = true;
-    }
+    const startupSound = startupSoundRef.current;
+    const backgroundSound = backgroundSoundRef.current;
+    
+    startupSound.volume = 0.3;
+    backgroundSound.volume = 0.2;
+    backgroundSound.loop = true;
+
+    const handleStartupEnd = () => {
+      backgroundSound.play();
+      startupSound.removeEventListener('ended', handleStartupEnd);
+    };
+
+    const playAudio = () => {
+      startupSound.play();
+      startupSound.addEventListener('ended', handleStartupEnd);
+      document.removeEventListener('click', playAudio);
+    };
+
+    document.addEventListener('click', playAudio);
+
+    return () => {
+      startupSound.pause();
+      backgroundSound.pause();
+      document.removeEventListener('click', playAudio);
+    };
   }, []);
 
   const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !audioRef.current.muted;
-      setIsMuted(!isMuted);
-    }
+    startupSoundRef.current.muted = !startupSoundRef.current.muted;
+    backgroundSoundRef.current.muted = !backgroundSoundRef.current.muted;
+    setIsMuted(!isMuted);
   };
 
   return (
-    <>
-      <audio
-        ref={audioRef}
-        src="/pacman-beginning.mp3"
-        autoPlay
-      />
-      <button
-        onClick={toggleMute}
-        className="fixed top-4 right-4 z-50 w-14 h-14 rounded-full transition-all duration-300 
-                   hover:scale-110 flex items-center justify-center shadow-lg
-                   bg-yellow-400 hover:bg-yellow-500 animate-pulse"
-        aria-label={isMuted ? 'Unmute' : 'Mute'}
-      >
-        <span className="text-3xl transform transition-transform duration-300">
-          {isMuted ? 'ᗧ' : 'ᗣ'}
-        </span>
-      </button>
-    </>
+    <button
+      onClick={toggleMute}
+      className="fixed top-4 right-4 z-50 w-16 h-16 flex flex-col items-center justify-center
+                 bg-black border-2 border-blue-500 rounded-lg transition-all duration-300 
+                 hover:scale-110 group shadow-lg hover:shadow-blue-500/50"
+    >
+      <span className={`text-3xl ${isMuted ? 'text-red-500' : 'text-yellow-400'} 
+                       group-hover:animate-bounce`}>
+        {isMuted ? '🔇' : '🔊'}
+      </span>
+      <span className="text-xs text-white font-press-start mt-1">
+        {isMuted ? 'MUTED' : 'SOUND'}
+      </span>
+    </button>
   );
 };
 

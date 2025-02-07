@@ -18,7 +18,26 @@ const Grid: React.FC = () => {
   const [pacmanPosition, setPacmanPosition] = useState({ x: 1, y: 1 });
   const [direction, setDirection] = useState('right');
 
-  // Add keyboard controls
+  // Initialize sections
+  useEffect(() => {
+    const sections = [
+      { text: 'RESUME', color: 'text-red-500', position: { row: 3, col: 3 }, path: '/resume' },
+      { text: 'SKILLS', color: 'text-blue-500', position: { row: 3, col: 11 }, path: '/skills' },
+      { text: 'PROJECTS', color: 'text-pink-500', position: { row: 11, col: 3 }, path: '/projects' },
+      { text: 'CONTACT', color: 'text-orange-500', position: { row: 11, col: 11 }, path: '/contact' },
+      // Dummy ghosts
+      { text: '', color: 'text-purple-500', position: { row: 7, col: 7 } },
+      { text: '', color: 'text-green-500', position: { row: 3, col: 7 } },
+      { text: '', color: 'text-yellow-500', position: { row: 11, col: 7 } }
+    ];
+
+    setMenuItems(sections.map(item => ({
+      ...item,
+      type: 'ᗣ'
+    })));
+  }, []);
+
+  // Keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
@@ -54,55 +73,23 @@ const Grid: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Add collision detection
+  // Collision detection
   useEffect(() => {
     const checkCollision = () => {
       menuItems.forEach(item => {
-        const ghostX = Math.round(item.position.col);
-        const ghostY = Math.round(item.position.row);
-        const pacmanX = Math.round(pacmanPosition.x);
-        const pacmanY = Math.round(pacmanPosition.y);
+        const distance = Math.sqrt(
+          Math.pow(pacmanPosition.x - item.position.col, 2) + 
+          Math.pow(pacmanPosition.y - item.position.row, 2)
+        );
 
-        if (ghostX === pacmanX && ghostY === pacmanY && item.path) {
-          setTimeout(() => {
-            navigate(item.path!);
-          }, 100);
+        if (distance < 1.5 && item.path) {
+          navigate(item.path);
         }
       });
     };
 
     checkCollision();
   }, [pacmanPosition, menuItems, navigate]);
-
-  // Initialize menu items with grid-aligned positions
-  useEffect(() => {
-    const getRandomGridPosition = () => {
-      const availablePositions = [
-        { row: 3, col: 3 }, { row: 3, col: 11 },
-        { row: 7, col: 7 }, { row: 11, col: 3 },
-        { row: 11, col: 11 }, { row: 7, col: 13 },
-        { row: 3, col: 7 }, { row: 11, col: 7 }
-      ];
-      const randomIndex = Math.floor(Math.random() * availablePositions.length);
-      return availablePositions.splice(randomIndex, 1)[0];
-    };
-
-    const mainSections = [
-      { text: 'RESUME', color: 'text-red-500', position: getRandomGridPosition(), path: '/resume' },
-      { text: 'SKILLS', color: 'text-blue-500', position: getRandomGridPosition(), path: '/skills' },
-      { text: 'PROJECTS', color: 'text-pink-500', position: getRandomGridPosition(), path: '/projects' },
-      { text: 'CONTACT', color: 'text-orange-500', position: getRandomGridPosition(), path: '/contact' },
-      // Dummy ghosts
-      { type: 'ᗣ', text: '', color: 'text-purple-500', position: getRandomGridPosition() },
-      { type: 'ᗣ', text: '', color: 'text-green-500', position: getRandomGridPosition() },
-      { type: 'ᗣ', text: '', color: 'text-yellow-500', position: getRandomGridPosition() }
-    ];
-
-    setMenuItems(mainSections.map(item => ({
-      ...item,
-      type: 'ᗣ'
-    })));
-  }, []);
 
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
@@ -114,23 +101,33 @@ const Grid: React.FC = () => {
           />
         ))}
 
-        {/* All Ghosts */}
+        {/* Ghosts */}
         {menuItems.map((item, index) => (
           <div
             key={`ghost-${index}`}
-            className={`absolute ${item.color} flex flex-col items-center z-20 hover:scale-110 transition-transform`}
+            className={`absolute ${item.color} flex flex-col items-center z-20 group`}
             style={{
               left: `${(item.position.col / 15) * 100}%`,
               top: `${(item.position.row / 15) * 100}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <span className="text-3xl animate-ghost-float">{item.type}</span>
-            {item.text && (
-              <span className="text-sm font-press-start mt-2 text-white whitespace-nowrap">
-                {item.text}
+            <div className={`relative ${item.path ? 'animate-pulse' : ''}`}>
+              <span className="text-3xl animate-ghost-float hover:scale-110 transition-transform">
+                {item.type}
               </span>
-            )}
+              {item.text && (
+                <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 w-max">
+                  <div className="bg-black/90 px-4 py-2 rounded-lg border-2 border-blue-500 
+                                opacity-0 group-hover:opacity-100 transition-all duration-300
+                                shadow-lg shadow-blue-500/50">
+                    <span className="text-sm font-press-start text-white whitespace-nowrap">
+                      {item.text}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ))}
 
