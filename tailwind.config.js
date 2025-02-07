@@ -1,9 +1,38 @@
-const theme = require('./src/config/tailwind.theme');
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-	content: ["./src/**/*.{js,ts,jsx,tsx}"],
-	darkMode: "media", // or 'class'
+	content: [
+	  "./src/**/*.{js,jsx,ts,tsx}",
+	],
 	theme: {
-		...theme,
+		extend: {
+		  fontFamily: {
+			'press-start': ['"Press Start 2P"', 'cursive'],
+		  },
+		  animation: {
+			'pacman-chomp': 'pacman-chomp 0.3s linear infinite',
+			'ghost-float': 'ghost-float 3s ease-in-out infinite',
+			'ghost-float-reverse': 'ghost-float 3s ease-in-out infinite reverse',
+		  },
+		  keyframes: {
+			'pacman-chomp': {
+			  '0%, 100%': { transform: 'rotate(45deg)' },
+			  '50%': { transform: 'rotate(0deg)' },
+			},
+			'ghost-float': {
+			  '0%, 100%': { transform: 'translate(-50%, -50%) translateY(0)' },
+			  '50%': { transform: 'translate(-50%, -50%) translateY(-10px)' },
+			}
+		  },
+		  gridTemplateColumns: {
+			'game': 'repeat(20, minmax(0, 1fr))',
+		  },
+		  gridTemplateRows: {
+			'game': 'repeat(15, minmax(0, 1fr))',
+		  },
+		  backgroundColor: {
+			'maze-blue': '#1919A6',
+		  }
+		},
 		screens: {
 			sm: "640px",
 			md: "768px",

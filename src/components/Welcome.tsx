@@ -1,62 +1,33 @@
-import React, { useState, useEffect } from 'react';
-
-interface Ghost {
-  type: string;
-  color: string;
-  position: {
-    top: number;
-    left: number;
-  };
-}
+import React from 'react';
+import BackgroundMusic from './BackgroundMusic';
 
 interface WelcomeProps {
   onBegin: () => void;
 }
 
 const Welcome: React.FC<WelcomeProps> = ({ onBegin }) => {
-  const [ghosts, setGhosts] = useState<Ghost[]>([]);
-
-  useEffect(() => {
-    const ghostTypes = ['ᗧ', 'ᗣ'];
-    const ghostColors = ['text-yellow-400', 'text-cyan-400', 'text-pink-400', 'text-red-400', 'text-green-400', 'text-purple-400'];
-    
-    const getRandomPosition = () => Math.floor(Math.random() * 85) + 5;
-    const getRandomItem = (array: any[]) => array[Math.floor(Math.random() * array.length)];
-    
-    const generateGhosts = () => {
-      return Array.from({ length: 8 }, () => ({
-        type: getRandomItem(ghostTypes),
-        color: getRandomItem(ghostColors),
-        position: {
-          top: getRandomPosition(),
-          left: getRandomPosition()
-        }
-      }));
-    };
-
-    setGhosts(generateGhosts());
-  }, []);
-
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
-      <div className="relative bg-blue-900/40 p-16 w-[1000px] h-[600px] rounded-xl text-center 
+      <BackgroundMusic />
+      <div className="relative bg-blue-900/60 p-16 w-[1000px] h-[600px] rounded-xl text-center 
                     border-[12px] border-blue-500/80 border-b-blue-700
-                    shadow-[inset_0_0_50px_rgba(59,130,246,0.3)]
-                    overflow-hidden flex flex-col items-center justify-center">
-        {ghosts.map((ghost, index) => (
-          <div
-            key={index}
-            className={`absolute text-3xl ${ghost.color} ${
-              index % 2 === 0 ? 'animate-pacman-move' : 'animate-pacman-move-reverse'
-            }`}
-            style={{
-              top: `${ghost.position.top}%`,
-              left: `${ghost.position.left}%`,
-            }}
-          >
-            {ghost.type}••••
-          </div>
-        ))}
+                    shadow-[inset_0_0_50px_rgba(59,130,246,0.3),inset_0_0_100px_rgba(0,0,0,0.5)]
+                    overflow-hidden flex flex-col items-center justify-center
+                    bg-[linear-gradient(0deg,rgba(30,58,138,0.1)1px,transparent_1px),linear-gradient(90deg,rgba(30,58,138,0.1)1px,transparent_1px)]
+                    bg-[size:20px_20px]">
+        {/* Pac-Man decorations */}
+        <div className="absolute top-12 left-0 animate-pacman-move text-yellow-400 text-5xl lg:text-6xl">
+          ᗧ•
+        </div>
+        <div className="absolute top-32 right-0 animate-pacman-move-reverse text-cyan-400 text-5xl lg:text-6xl">
+          ᗣ•
+        </div>
+        <div className="absolute bottom-32 left-0 animate-pacman-move text-pink-400 text-5xl lg:text-6xl">
+          ᗧ•
+        </div>
+        <div className="absolute bottom-12 right-0 animate-pacman-move-reverse text-red-400 text-5xl lg:text-6xl">
+          ᗣ•
+        </div>
         
         <h1 className="text-4xl text-yellow-400 mb-20 font-press-start tracking-wider 
                      drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]">
