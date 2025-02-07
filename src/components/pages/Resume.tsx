@@ -6,8 +6,7 @@ const Resume: React.FC = () => {
     <div className="min-h-screen bg-black">
       <BackButton />
       <div className="text-white p-8 max-w-4xl mx-auto pt-24">
-        <h1 className="text-3xl mb-4 text-yellow-400 font-press-start">Resume</h1>
-        <div className="bg-black/80 p-6 rounded-lg backdrop-blur-sm border-2 border-blue-500">
+        <div className="bg-blue-900/20 p-6 rounded-lg backdrop-blur-sm border-2 border-blue-500">
           <iframe 
             title="Resume Preview"
             src="https://drive.google.com/file/d/1PosjEzGEHHone4TWK6byiSun8_XgXNlS/preview"

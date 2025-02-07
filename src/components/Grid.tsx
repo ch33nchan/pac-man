@@ -15,21 +15,32 @@ interface MenuItem {
 const Grid: React.FC = () => {
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [pacmanPosition, setPacmanPosition] = useState({ x: 1, y: 1 });
+  const [pacmanPosition, setPacmanPosition] = useState(() => ({
+    x: Math.floor(Math.random() * 13) + 1,
+    y: Math.floor(Math.random() * 13) + 1
+  }));
   const [direction, setDirection] = useState('right');
+  const [canNavigate, setCanNavigate] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  // Initialize sections
   useEffect(() => {
+    const getRandomPosition = () => ({
+      row: Math.floor(Math.random() * 13) + 1,
+      col: Math.floor(Math.random() * 13) + 1
+    });
+
     const sections = [
-      { text: 'RESUME', color: 'text-red-500', position: { row: 3, col: 3 }, path: '/resume' },
-      { text: 'SKILLS', color: 'text-blue-500', position: { row: 3, col: 11 }, path: '/skills' },
-      { text: 'PROJECTS', color: 'text-pink-500', position: { row: 11, col: 3 }, path: '/projects' },
-      { text: 'CONTACT', color: 'text-orange-500', position: { row: 11, col: 11 }, path: '/contact' },
-      // Dummy ghosts
-      { text: '', color: 'text-purple-500', position: { row: 7, col: 7 } },
-      { text: '', color: 'text-green-500', position: { row: 3, col: 7 } },
-      { text: '', color: 'text-yellow-500', position: { row: 11, col: 7 } }
-    ];
+      { text: 'RESUME', color: 'text-red-500', path: '/resume' },
+      { text: 'SKILLS', color: 'text-blue-500', path: '/skills' },
+      { text: 'PROJECTS', color: 'text-pink-500', path: '/projects' },
+      { text: 'CONTACT', color: 'text-orange-500', path: '/contact' },
+      { text: '', color: 'text-purple-500' },
+      { text: '', color: 'text-green-500' },
+      { text: '', color: 'text-yellow-500' }
+    ].map(item => ({
+      ...item,
+      position: getRandomPosition()
+    }));
 
     setMenuItems(sections.map(item => ({
       ...item,
@@ -37,7 +48,6 @@ const Grid: React.FC = () => {
     })));
   }, []);
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
@@ -73,55 +83,110 @@ const Grid: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Collision detection
+  // Update collision detection
   useEffect(() => {
+    if (!canNavigate || isNavigating) return;
+
     const checkCollision = () => {
-      menuItems.forEach(item => {
+      for (const item of menuItems) {
         const distance = Math.sqrt(
           Math.pow(pacmanPosition.x - item.position.col, 2) + 
           Math.pow(pacmanPosition.y - item.position.row, 2)
         );
 
         if (distance < 1.5 && item.path) {
-          navigate(item.path);
+          setIsNavigating(true);
+          setCanNavigate(false);
+          setTimeout(() => {
+            navigate(item.path!);
+          }, 500);
+          break;
         }
-      });
+      }
     };
 
     checkCollision();
-  }, [pacmanPosition, menuItems, navigate]);
+  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating]);
+
+  // Reset navigation state when component mounts
+  useEffect(() => {
+    setIsNavigating(false);
+    setCanNavigate(true);
+  }, []);
 
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
-      <div className="w-[800px] h-[800px] relative border-2 border-blue-600 grid grid-cols-15 grid-rows-15 gap-[1px] bg-[#1E3A8A]">
-        {Array.from({ length: 225 }).map((_, index) => (
-          <div 
-            key={`cell-${index}`} 
-            className="bg-black border border-blue-900/20"
-          />
-        ))}
-
-        {/* Ghosts */}
+      <div className="fixed top-4 left-4 bg-black/80 p-4 rounded-lg border-2 border-yellow-400">
+        <h3 className="text-yellow-400 font-press-start text-sm mb-2">CONTROLS:</h3>
+        <div className="text-white font-press-start text-xs space-y-1">
+          <p>W - Move Up</p>
+          <p>S - Move Down</p>
+          <p>A - Move Left</p>
+          <p>D - Move Right</p>
+        </div>
+      </div>
+    
+      {/* Update ghost labels to be more compact */}
+      {menuItems.map((item, index) => (
+        <div
+          key={`ghost-${index}`}
+          className={`absolute ${item.color} flex flex-col items-center z-20`}
+          style={{
+            left: `${(item.position.col / 15) * 100}%`,
+            top: `${(item.position.row / 15) * 100}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <div className={`relative ${item.path ? 'animate-pulse shadow-lg shadow-yellow-400/50' : ''}`}>
+            <span className={`text-4xl animate-ghost-float transition-all duration-300 inline-block
+                          ${item.path ? 'hover:text-yellow-400 hover:shadow-xl hover:shadow-yellow-400' : ''}`}>
+              {item.type}
+            </span>
+            {item.text && (
+              <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-max">
+                <div className="bg-yellow-400 px-4 py-2 rounded-lg border-2 border-yellow-600 
+                            shadow-lg shadow-yellow-400/50">
+                  <span className="text-sm font-press-start text-black whitespace-nowrap">
+                    {item.text}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+      <div className="w-[800px] h-[800px] relative">
+        {/* Main game grid */}
+        <div className="absolute inset-0 grid grid-cols-15 grid-rows-15 bg-black border-4 border-maze-blue">
+          {Array.from({ length: 225 }).map((_, index) => (
+            <div 
+              key={`cell-${index}`}
+              className="border border-maze-blue/30 bg-black relative"
+            />
+          ))}
+        </div>
+      
+        {/* Existing ghost and pacman elements */}
         {menuItems.map((item, index) => (
           <div
             key={`ghost-${index}`}
-            className={`absolute ${item.color} flex flex-col items-center z-20 group`}
+            className={`absolute ${item.color} flex flex-col items-center z-20`}
             style={{
               left: `${(item.position.col / 15) * 100}%`,
               top: `${(item.position.row / 15) * 100}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className={`relative ${item.path ? 'animate-pulse' : ''}`}>
-              <span className="text-3xl animate-ghost-float hover:scale-110 transition-transform">
+            <div className={`relative ${item.path ? 'animate-pulse shadow-lg shadow-yellow-400/50' : ''}`}>
+              <span className={`text-4xl animate-ghost-float transition-all duration-300 inline-block
+                            ${item.path ? 'hover:text-yellow-400 hover:shadow-xl hover:shadow-yellow-400' : ''}`}>
                 {item.type}
               </span>
               {item.text && (
-                <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 w-max">
-                  <div className="bg-black/90 px-4 py-2 rounded-lg border-2 border-blue-500 
-                                opacity-0 group-hover:opacity-100 transition-all duration-300
-                                shadow-lg shadow-blue-500/50">
-                    <span className="text-sm font-press-start text-white whitespace-nowrap">
+                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-max">
+                  <div className="bg-yellow-400 px-4 py-2 rounded-lg border-2 border-yellow-600 
+                              shadow-lg shadow-yellow-400/50">
+                    <span className="text-sm font-press-start text-black whitespace-nowrap">
                       {item.text}
                     </span>
                   </div>
@@ -130,7 +195,7 @@ const Grid: React.FC = () => {
             </div>
           </div>
         ))}
-
+      
         {/* Pacman */}
         <div 
           className="absolute text-yellow-400 text-4xl animate-pacman-chomp z-30"

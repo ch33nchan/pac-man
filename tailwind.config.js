@@ -1,3 +1,5 @@
+
+const { animations, extendedAnimations } = require('./src/styles/animations');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: [
@@ -12,11 +14,13 @@ module.exports = {
 			'pacman-chomp': 'pacman-chomp 0.3s linear infinite',
 			'ghost-float': 'ghost-float 3s ease-in-out infinite',
 			'ghost-float-reverse': 'ghost-float 3s ease-in-out infinite reverse',
+			...extendedAnimations,
 		  },
 		  keyframes: {
 			'pacman-chomp': {
 			  '0%, 100%': { transform: 'rotate(45deg)' },
 			  '50%': { transform: 'rotate(0deg)' },
+			  ...animations
 			},
 			'ghost-float': {
 			  '0%, 100%': { transform: 'translate(-50%, -50%) translateY(0)' },
@@ -25,9 +29,11 @@ module.exports = {
 		  },
 		  gridTemplateColumns: {
 			'game': 'repeat(20, minmax(0, 1fr))',
+			'15': 'repeat(15, minmax(0, 1fr))',
 		  },
 		  gridTemplateRows: {
 			'game': 'repeat(15, minmax(0, 1fr))',
+			'15': 'repeat(15, minmax(0, 1fr))',
 		  },
 		  backgroundColor: {
 			'maze-blue': '#1919A6',

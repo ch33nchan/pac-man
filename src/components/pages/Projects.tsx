@@ -1,37 +1,46 @@
 import React from 'react';
+import BackButton from '../BackButton';
 
-export default function Projects() {
+const Projects: React.FC = () => {
   const projects = [
     {
-      title: 'Autonomous Robot Navigation',
-      description: 'Implemented SLAM and path planning algorithms for autonomous robot navigation.',
-      tech: ['ROS', 'Python', 'C++'],
+      title: 'Project 1',
+      description: 'A fantastic project with amazing features',
+      tech: ['React', 'Node.js', 'MongoDB']
     },
     {
-      title: 'Deep RL for Robotic Manipulation',
-      description: 'Developed deep reinforcement learning algorithms for robotic arm control.',
-      tech: ['PyTorch', 'Python', 'OpenAI Gym'],
-    },
+      title: 'Project 2',
+      description: 'Another awesome project that does cool things',
+      tech: ['TypeScript', 'Express', 'PostgreSQL']
+    }
   ];
 
   return (
-    <div className="text-white p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl mb-4 text-yellow-400">Projects</h1>
-      <div className="space-y-6">
-        {projects.map((project, index) => (
-          <div key={index} className="bg-black/80 p-6 rounded-lg backdrop-blur-sm">
-            <h2 className="text-2xl mb-2">{project.title}</h2>
-            <p className="text-gray-300 mb-4">{project.description}</p>
-            <div className="flex gap-2">
-              {project.tech.map((tech, i) => (
-                <span key={i} className="bg-yellow-400 text-black px-2 py-1 rounded text-sm">
-                  {tech}
-                </span>
-              ))}
+    <div className="min-h-screen bg-black p-8">
+      <BackButton />
+      <div className="max-w-4xl mx-auto pt-24">
+        <h1 className="text-4xl text-yellow-400 font-press-start mb-12 text-center">PROJECTS</h1>
+        <div className="grid grid-cols-1 gap-8">
+          {projects.map((project, index) => (
+            <div key={index} className="bg-maze-blue/20 p-6 rounded-lg border-2 border-maze-blue group hover:scale-105 transition-all duration-300">
+              <h2 className="text-2xl text-yellow-400 font-press-start mb-4 flex items-center">
+                <span className="mr-2">ᗧ</span>
+                {project.title}
+              </h2>
+              <p className="text-white font-press-start text-sm mb-4">{project.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {project.tech.map((tech, i) => (
+                  <span key={i} className="px-3 py-1 bg-black text-yellow-400 font-press-start text-xs rounded-full border border-maze-blue">
+                    {tech}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Projects;
