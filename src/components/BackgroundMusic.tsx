@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const BackgroundMusic: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const startupSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pacman-start.mp3'));
-  const backgroundSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pacman-background.mp3'));
+  const startupSoundRef = useRef(new Audio('/sounds/pacman-start.mp3'));
+  const backgroundSoundRef = useRef(new Audio('/sounds/pacman-background.mp3'));
 
   useEffect(() => {
     const startupSound = startupSoundRef.current;
@@ -15,22 +14,19 @@ const BackgroundMusic: React.FC = () => {
     backgroundSound.loop = true;
 
     const handleStartupEnd = () => {
-      if (!backgroundSound.paused) return;
       backgroundSound.play().catch(console.error);
     };
 
-    const initializeAudio = () => {
-      if (isInitialized) return;
+    const playAudio = () => {
       startupSound.play()
         .then(() => {
-          setIsInitialized(true);
           startupSound.addEventListener('ended', handleStartupEnd);
         })
         .catch(console.error);
     };
 
     const handleClick = () => {
-      initializeAudio();
+      playAudio();
       document.removeEventListener('click', handleClick);
     };
 
@@ -42,7 +38,7 @@ const BackgroundMusic: React.FC = () => {
       startupSound.removeEventListener('ended', handleStartupEnd);
       document.removeEventListener('click', handleClick);
     };
-  }, [isInitialized]);
+  }, []);
 
   const toggleMute = () => {
     startupSoundRef.current.muted = !isMuted;

@@ -48,6 +48,29 @@ const Grid: React.FC = () => {
     })));
   }, []);
 
+  // Remove the first useEffect with getRandomPosition
+  useEffect(() => {
+    const gridPositions = [
+      { row: 2, col: 2 },    // Top left
+      { row: 2, col: 13 },   // Top right
+      { row: 13, col: 2 },   // Bottom left
+      { row: 13, col: 13 },  // Bottom right
+    ];
+
+    const sections = [
+      { text: 'RESUME', color: 'text-red-500', path: '/resume' },
+      { text: 'SKILLS', color: 'text-blue-500', path: '/skills' },
+      { text: 'PROJECTS', color: 'text-pink-500', path: '/projects' },
+      { text: 'CONTACT', color: 'text-orange-500', path: '/contact' }
+    ].map((item, index) => ({
+      ...item,
+      position: gridPositions[index],
+      type: 'ᗣ'
+    }));
+
+    setMenuItems(sections);
+  }, []);
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
@@ -116,45 +139,16 @@ const Grid: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
-      <div className="fixed top-4 left-4 bg-black/80 p-4 rounded-lg border-2 border-yellow-400">
-        <h3 className="text-yellow-400 font-press-start text-sm mb-2">CONTROLS:</h3>
+      <div className="fixed top-4 left-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20">
+        <h3 className="text-yellow-400 font-press-start text-sm mb-2">ARCADE CONTROLS</h3>
         <div className="text-white font-press-start text-xs space-y-1">
-          <p>W - Move Up</p>
-          <p>S - Move Down</p>
-          <p>A - Move Left</p>
-          <p>D - Move Right</p>
+          <p>↑ W - Move Up</p>
+          <p>↓ S - Move Down</p>
+          <p>← A - Move Left</p>
+          <p>→ D - Move Right</p>
         </div>
       </div>
-    
-      {/* Update ghost labels to be more compact */}
-      {menuItems.map((item, index) => (
-        <div
-          key={`ghost-${index}`}
-          className={`absolute ${item.color} flex flex-col items-center z-20`}
-          style={{
-            left: `${(item.position.col / 15) * 100}%`,
-            top: `${(item.position.row / 15) * 100}%`,
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-          <div className={`relative ${item.path ? 'animate-pulse shadow-lg shadow-yellow-400/50' : ''}`}>
-            <span className={`text-4xl animate-ghost-float transition-all duration-300 inline-block
-                          ${item.path ? 'hover:text-yellow-400 hover:shadow-xl hover:shadow-yellow-400' : ''}`}>
-              {item.type}
-            </span>
-            {item.text && (
-              <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-max">
-                <div className="bg-yellow-400 px-4 py-2 rounded-lg border-2 border-yellow-600 
-                            shadow-lg shadow-yellow-400/50">
-                  <span className="text-sm font-press-start text-black whitespace-nowrap">
-                    {item.text}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
+
       <div className="w-[800px] h-[800px] relative">
         {/* Main game grid */}
         <div className="absolute inset-0 grid grid-cols-15 grid-rows-15 bg-black border-4 border-maze-blue">
@@ -165,8 +159,8 @@ const Grid: React.FC = () => {
             />
           ))}
         </div>
-      
-        {/* Existing ghost and pacman elements */}
+
+        {/* Ghosts */}
         {menuItems.map((item, index) => (
           <div
             key={`ghost-${index}`}
@@ -183,10 +177,10 @@ const Grid: React.FC = () => {
                 {item.type}
               </span>
               {item.text && (
-                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-max">
-                  <div className="bg-yellow-400 px-4 py-2 rounded-lg border-2 border-yellow-600 
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-max">
+                  <div className="bg-yellow-400 px-3 py-1 rounded-lg border-2 border-yellow-600 
                               shadow-lg shadow-yellow-400/50">
-                    <span className="text-sm font-press-start text-black whitespace-nowrap">
+                    <span className="text-xs font-press-start text-black whitespace-nowrap">
                       {item.text}
                     </span>
                   </div>
@@ -195,7 +189,7 @@ const Grid: React.FC = () => {
             </div>
           </div>
         ))}
-      
+
         {/* Pacman */}
         <div 
           className="absolute text-yellow-400 text-4xl animate-pacman-chomp z-30"
