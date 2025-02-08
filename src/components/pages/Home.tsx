@@ -7,44 +7,29 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
-      <BackgroundMusic />
+      <BackgroundMusic isGameScreen={false} />
       
-      {/* Decorative Pacmans */}
-      <div className="absolute text-4xl text-blue-400 animate-float-left-right left-0">ᗧ•••</div>
-      <div className="absolute text-4xl text-blue-400 animate-float-right-left right-0">•••ᗧ</div>
-      <div className="absolute text-4xl text-blue-400 animate-float-top-bottom top-0">ᗧ•••</div>
-      
-      {/* Arcade Frame */}
-      <div className="bg-blue-900/20 p-8 rounded-2xl border-4 border-blue-500/50 shadow-lg shadow-blue-500/30">
-        <h1 className="text-4xl text-yellow-400 font-press-start mb-8 animate-pulse text-center 
-                      tracking-wider leading-relaxed">
-          Welcome to<br />
-          <span className="text-5xl">Srini's</span><br />
-          PacMan World
+      <div className="bg-black/50 px-16 py-8 rounded-xl border-4 border-blue-500/50 shadow-lg shadow-blue-500/20 max-w-2xl w-full mx-4">
+        <h1 className="text-xl text-yellow-400 font-press-start mb-8 animate-pulse text-center tracking-wider">
+          <span className="block text-sm mb-4">WELCOME TO</span>
+          <span className="block text-2xl mb-2">SRINI'S</span>
+          <span className="block text-base">PACMAN PORTFOLIO</span>
         </h1>
-        
-        <div className="flex justify-center">
-          <button
-            onClick={() => navigate('/game')}
-            className="text-2xl text-white font-press-start bg-pink-500 px-10 py-4 
-                     rounded-xl hover:bg-pink-600 transition-all duration-300
-                     border-4 border-pink-300 hover:scale-110 animate-pulse
-                     shadow-lg shadow-pink-500/50 relative group"
-          >
-            <span className="absolute -left-8 text-2xl text-yellow-400 group-hover:animate-chomp">ᗧ</span>
-            START GAME
-            <span className="absolute -right-8 text-2xl text-blue-400">•••</span>
-          </button>
-        </div>
-
-        <div className="mt-8 text-center text-blue-400 font-press-start text-sm animate-pulse">
-          INSERT COIN TO PLAY
-        </div>
+        <button
+          onClick={() => navigate('/game')}
+          className="w-full text-base text-white font-press-start bg-pink-500 px-6 py-3 
+                   rounded-lg hover:bg-pink-600 transition-all duration-300
+                   border-4 border-pink-300 hover:scale-105 animate-pulse
+                   shadow-lg shadow-pink-500/50"
+        >
+          INSERT COIN TO START
+        </button>
       </div>
 
-      {/* Arcade Decorations */}
-      <div className="fixed top-0 left-0 w-full h-4 bg-gradient-to-r from-blue-500/20 via-blue-400/40 to-blue-500/20"></div>
-      <div className="fixed bottom-0 left-0 w-full h-4 bg-gradient-to-r from-blue-500/20 via-blue-400/40 to-blue-500/20"></div>
+      {/* Decorative Pacmans */}
+      <div className="absolute text-2xl text-yellow-400 animate-float-left-right left-0">ᗧ•••</div>
+      <div className="absolute text-2xl text-yellow-400 animate-float-right-left right-0 top-1/4">•••ᗧ</div>
+      <div className="absolute text-2xl text-yellow-400 animate-float-top-bottom top-0">ᗧ•••</div>
     </div>
   );
 };

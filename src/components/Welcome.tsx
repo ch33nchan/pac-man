@@ -6,9 +6,16 @@ interface WelcomeProps {
 }
 
 const Welcome: React.FC<WelcomeProps> = ({ onBegin }) => {
+  const handleBegin = () => {
+    if (window.startThemeMusic) {
+      window.startThemeMusic();
+    }
+    onBegin();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
-      <BackgroundMusic />
+      <BackgroundMusic isGameScreen={false} />
       <div className="relative bg-blue-900/60 p-16 w-[1000px] h-[600px] rounded-xl text-center 
                     border-[12px] border-blue-500/80 border-b-blue-700
                     shadow-[inset_0_0_50px_rgba(59,130,246,0.3),inset_0_0_100px_rgba(0,0,0,0.5)]
@@ -36,7 +43,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onBegin }) => {
         
         <div className="relative group hover:cursor-pointer p-8 -m-8">
           <button
-            onClick={onBegin}
+            onClick={handleBegin}
             className="relative px-24 py-6 bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600
                      text-white font-press-start text-xl tracking-[0.2em] leading-relaxed
                      transform-gpu transition-all duration-150 ease-in-out

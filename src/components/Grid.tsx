@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackgroundMusic from './BackgroundMusic';
+
 
 interface MenuItem {
   type: string;
@@ -12,101 +14,137 @@ interface MenuItem {
   path?: string;
 }
 
+interface Position {
+  row: number;
+  col: number;
+}
+
+declare global {
+  interface Window {
+    toggleSound: () => void;
+    startThemeMusic: () => void;
+    playWakaSound: () => void;
+    playDeathSound: () => void;
+    playThemeSound: () => void;
+  }
+}
+
+const getRandomPosition = (): Position => ({
+  row: Math.floor(Math.random() * 13) + 1,
+  col: Math.floor(Math.random() * 13) + 1
+});
+
 const Grid: React.FC = () => {
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [pacmanPosition, setPacmanPosition] = useState(() => ({
-    x: Math.floor(Math.random() * 13) + 1,
-    y: Math.floor(Math.random() * 13) + 1
-  }));
+  const [isMuted, setIsMuted] = useState(false);
   const [direction, setDirection] = useState('right');
   const [canNavigate, setCanNavigate] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+  
+  // Use getSafePacmanPosition for initial position
+  const [pacmanPosition, setPacmanPosition] = useState(() => ({ x: 7, y: 7 }));
 
   useEffect(() => {
-    const getRandomPosition = () => ({
-      row: Math.floor(Math.random() * 13) + 1,
-      col: Math.floor(Math.random() * 13) + 1
-    });
+    // Set pacman position after menu items are initialized
+    setPacmanPosition(getSafePacmanPosition());
+  }, [menuItems]);
 
-    const sections = [
-      { text: 'RESUME', color: 'text-red-500', path: '/resume' },
-      { text: 'SKILLS', color: 'text-blue-500', path: '/skills' },
-      { text: 'PROJECTS', color: 'text-pink-500', path: '/projects' },
-      { text: 'CONTACT', color: 'text-orange-500', path: '/contact' },
-      { text: '', color: 'text-purple-500' },
-      { text: '', color: 'text-green-500' },
-      { text: '', color: 'text-yellow-500' }
-    ].map(item => ({
-      ...item,
-      position: getRandomPosition()
-    }));
+  const getSafePacmanPosition = (): { x: number; y: number } => {
+    let safePosition: Position = { row: -1, col: -1 };
+    do {
+      const position = getRandomPosition();
+      if (!menuItems.some(item => Math.abs(item.position.row - position.row) < 2 && Math.abs(item.position.col - position.col) < 2)) {
+        safePosition = position;
+      }
+    } while (safePosition.row === -1 && safePosition.col === -1);
+    return { x: safePosition.col, y: safePosition.row };
+  };
 
-    setMenuItems(sections.map(item => ({
-      ...item,
-      type: 'ᗣ'
-    })));
-  }, []);
-
-  // Remove the first useEffect with getRandomPosition
+  // Initialize menu items
   useEffect(() => {
-    const gridPositions = [
-      { row: 2, col: 2 },    // Top left
-      { row: 2, col: 13 },   // Top right
-      { row: 13, col: 2 },   // Bottom left
-      { row: 13, col: 13 },  // Bottom right
-    ];
-
     const sections = [
       { text: 'RESUME', color: 'text-red-500', path: '/resume' },
       { text: 'SKILLS', color: 'text-blue-500', path: '/skills' },
       { text: 'PROJECTS', color: 'text-pink-500', path: '/projects' },
       { text: 'CONTACT', color: 'text-orange-500', path: '/contact' }
-    ].map((item, index) => ({
+    ].map(item => ({
       ...item,
-      position: gridPositions[index],
+      position: getRandomPosition(),
       type: 'ᗣ'
     }));
 
-    setMenuItems(sections);
+    const dummyGhosts = Array.from({ length: 4 }).map((_, index) => ({
+      text: '',
+      color: ['text-purple-500', 'text-green-500', 'text-cyan-500', 'text-indigo-500'][index],
+      position: getRandomPosition(),
+      type: 'ᗣ'
+    }));
+
+    setMenuItems([...sections, ...dummyGhosts]);
   }, []);
 
+  // Handle keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
+      let moved = false;
+
       switch(e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          setPacmanPosition(prev => ({ ...prev, y: Math.max(prev.y - speed, 0) }));
+          setPacmanPosition(prev => {
+            const newY = Math.max(prev.y - speed, 0);
+            moved = newY !== prev.y;
+            return { ...prev, y: newY };
+          });
           setDirection('up');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          setPacmanPosition(prev => ({ ...prev, y: Math.min(prev.y + speed, 14) }));
+          setPacmanPosition(prev => {
+            const newY = Math.min(prev.y + speed, 14);
+            moved = newY !== prev.y;
+            return { ...prev, y: newY };
+          });
           setDirection('down');
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          setPacmanPosition(prev => ({ ...prev, x: Math.max(prev.x - speed, 0) }));
+          setPacmanPosition(prev => {
+            const newX = Math.max(prev.x - speed, 0);
+            moved = newX !== prev.x;
+            return { ...prev, x: newX };
+          });
           setDirection('left');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          setPacmanPosition(prev => ({ ...prev, x: Math.min(prev.x + speed, 14) }));
+          setPacmanPosition(prev => {
+            const newX = Math.min(prev.x + speed, 14);
+            moved = newX !== prev.x;
+            return { ...prev, x: newX };
+          });
           setDirection('right');
           break;
+      }
+    
+      if (moved && !isMuted) {
+        const wakaSound = new Audio('/sounds/pac-man-waka-waka.mp3');
+        wakaSound.volume = 0.3;
+        wakaSound.play().catch(console.error);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [isMuted]);
 
-  // Update collision detection
+  // Handle collisions
   useEffect(() => {
     if (!canNavigate || isNavigating) return;
 
@@ -120,25 +158,53 @@ const Grid: React.FC = () => {
         if (distance < 1.5 && item.path) {
           setIsNavigating(true);
           setCanNavigate(false);
+          if (!isMuted) {
+            const deathSound = new Audio('/sounds/pac-man-dies-2.mp3');
+            deathSound.volume = 0.3;
+            deathSound.play().catch(console.error);
+          }
+          
           setTimeout(() => {
             navigate(item.path!);
-          }, 500);
-          break;
+          }, 1000);
+          return;
         }
       }
     };
 
     checkCollision();
-  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating]);
+  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, isMuted]);
 
-  // Reset navigation state when component mounts
+  // Reset navigation state
   useEffect(() => {
     setIsNavigating(false);
     setCanNavigate(true);
   }, []);
 
+  const toggleMute = () => {
+    setIsMuted(prev => {
+      const newMuted = !prev;
+      if (window.toggleSound) {
+        window.toggleSound();
+      }
+      return newMuted;
+    });
+  };
+
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
+      <BackgroundMusic isGameScreen={true} />
+      
+      {/* Add mute button */}
+      <button 
+        onClick={toggleMute}
+        className="fixed top-4 right-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20"
+      >
+        <span className="text-yellow-400 font-press-start text-sm">
+          {isMuted ? '🔇' : '🔊'}
+        </span>
+      </button>
+
       <div className="fixed top-4 left-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20">
         <h3 className="text-yellow-400 font-press-start text-sm mb-2">ARCADE CONTROLS</h3>
         <div className="text-white font-press-start text-xs space-y-1">
@@ -150,7 +216,6 @@ const Grid: React.FC = () => {
       </div>
 
       <div className="w-[800px] h-[800px] relative">
-        {/* Main game grid */}
         <div className="absolute inset-0 grid grid-cols-15 grid-rows-15 bg-black border-4 border-maze-blue">
           {Array.from({ length: 225 }).map((_, index) => (
             <div 
@@ -160,7 +225,6 @@ const Grid: React.FC = () => {
           ))}
         </div>
 
-        {/* Ghosts */}
         {menuItems.map((item, index) => (
           <div
             key={`ghost-${index}`}
@@ -171,9 +235,9 @@ const Grid: React.FC = () => {
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className={`relative ${item.path ? 'animate-pulse shadow-lg shadow-yellow-400/50' : ''}`}>
+            <div className={`relative ${item.path ? 'animate-pulse' : ''}`}>
               <span className={`text-4xl animate-ghost-float transition-all duration-300 inline-block
-                            ${item.path ? 'hover:text-yellow-400 hover:shadow-xl hover:shadow-yellow-400' : ''}`}>
+                            ${item.path ? 'hover:scale-110 hover:text-yellow-400' : ''}`}>
                 {item.type}
               </span>
               {item.text && (
@@ -190,7 +254,6 @@ const Grid: React.FC = () => {
           </div>
         ))}
 
-        {/* Pacman */}
         <div 
           className="absolute text-yellow-400 text-4xl animate-pacman-chomp z-30"
           style={{

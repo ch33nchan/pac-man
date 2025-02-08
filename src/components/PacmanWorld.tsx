@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GiCircle } from 'react-icons/gi';
 import { FaGhost } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Ensure useNavigate is imported
 import { useAudio, playMoveSound, playEatFruitSound } from '../hooks/useAudio';
 import Welcome from './Welcome';
 
@@ -23,77 +23,17 @@ const sections: Section[] = [
   { x: 10, y: 10, icon: <FaGhost className="text-orange-500" />, label: 'Contact', path: '/contact' }
 ];
 
-export const PacmanWorld: React.FC = () => {
-  const navigate = useNavigate();
+const PacmanWorld: React.FC = () => {
+  const navigate = useNavigate(); // Use useNavigate for navigation
   const [showWelcome, setShowWelcome] = useState(true);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [direction, setDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
-  const { playing, toggle, startGame } = useAudio(THEME_SOUND);
+  const [playing, setPlaying] = useState(false); // Define playing state
+  const [position, setPosition] = useState({ x: 0, y: 0 }); // Define position state
 
   const handleBegin = () => {
     setShowWelcome(false);
-    startGame();
   };
 
-  // Add movement controls
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (showWelcome) return; // Disable movement when welcome screen is shown
-
-      const key = e.key.toLowerCase();
-      let newPos = { ...position };
-      let moved = false;
-
-      switch (key) {
-        case 'w':
-        case 'arrowup':
-          if (position.y > 0) {
-            newPos.y = position.y - 1;
-            moved = true;
-            setDirection('up');
-          }
-          break;
-        case 's':
-        case 'arrowdown':
-          if (position.y < GRID_SIZE - 1) {
-            newPos.y = position.y + 1;
-            moved = true;
-            setDirection('down');
-          }
-          break;
-        case 'a':
-        case 'arrowleft':
-          if (position.x > 0) {
-            newPos.x = position.x - 1;
-            moved = true;
-            setDirection('left');
-          }
-          break;
-        case 'd':
-        case 'arrowright':
-          if (position.x < GRID_SIZE - 1) {
-            newPos.x = position.x + 1;
-            moved = true;
-            setDirection('right');
-          }
-          break;
-      }
-
-      if (moved) {
-        playMoveSound();
-        setPosition(newPos);
-
-        const section = sections.find(s => s.x === newPos.x && s.y === newPos.y);
-        if (section) {
-          playEatFruitSound();
-          navigate(section.path);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [position, showWelcome, navigate]);
+  const toggle = () => setPlaying(!playing); // Define toggle function
 
   return (
     <div className="min-h-screen bg-black p-8 flex flex-col items-center justify-center relative">
