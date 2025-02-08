@@ -86,7 +86,7 @@ const Grid: React.FC = () => {
     }
   }, [menuItems, getSafePacmanPosition]);
 
-  // Handle keyboard controls
+  // Update keyboard controls with new sound effects
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
@@ -136,15 +136,54 @@ const Grid: React.FC = () => {
       }
     
       if (moved && !isMuted) {
-        const wakaSound = new Audio('/sounds/pac-man-waka-waka.mp3');
-        wakaSound.volume = 0.3;
-        wakaSound.play().catch(console.error);
+        const moveSound = new Audio('/sounds/pacman_eatfruit.wav');
+        moveSound.volume = 0.2;
+        moveSound.play().catch(console.error);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isMuted]);
+
+  // Update collision detection with new sounds
+  useEffect(() => {
+    if (!canNavigate || isNavigating) return;
+
+    const checkCollision = () => {
+      for (const item of menuItems) {
+        const distance = Math.sqrt(
+          Math.pow(pacmanPosition.x - item.position.col, 2) + 
+          Math.pow(pacmanPosition.y - item.position.row, 2)
+        );
+
+        if (distance < 1.5) {
+          if (item.path) {
+            setIsNavigating(true);
+            setCanNavigate(false);
+            if (!isMuted) {
+              const ghostSound = new Audio('/sounds/pac_man_ghost.mp3');
+              ghostSound.volume = 0.3;
+              ghostSound.play().catch(console.error);
+            }
+            
+            // Reduced delay
+            setTimeout(() => {
+              navigate(item.path!);
+            }, 500); // Reduced from 1000 to 500
+            return;
+          } else if (distance < 2.5) {
+            // Play waka sound when approaching non-path ghosts
+            const wakaSound = new Audio('/sounds/pac-man-waka-waka.mp3');
+            wakaSound.volume = 0.2;
+            wakaSound.play().catch(console.error);
+          }
+        }
+      }
+    };
+
+    checkCollision();
+  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, isMuted]);
 
   // Handle collisions
   // Update collision detection to be more precise
