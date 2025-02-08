@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// Remove unused import
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackgroundMusic from './BackgroundMusic';
 
@@ -41,16 +42,10 @@ const Grid: React.FC = () => {
   const [direction, setDirection] = useState('right');
   const [canNavigate, setCanNavigate] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
-  
-  // Use getSafePacmanPosition for initial position
-  const [pacmanPosition, setPacmanPosition] = useState(() => ({ x: 7, y: 7 }));
+  const [pacmanPosition, setPacmanPosition] = useState({ x: 7, y: 7 });
 
-  useEffect(() => {
-    // Set pacman position after menu items are initialized
-    setPacmanPosition(getSafePacmanPosition());
-  }, [menuItems]);
-
-  const getSafePacmanPosition = (): { x: number; y: number } => {
+  // Define getSafePacmanPosition before using it
+  const getSafePacmanPosition = useCallback((): { x: number; y: number } => {
     let safePosition: Position = { row: -1, col: -1 };
     do {
       const position = getRandomPosition();
@@ -59,9 +54,9 @@ const Grid: React.FC = () => {
       }
     } while (safePosition.row === -1 && safePosition.col === -1);
     return { x: safePosition.col, y: safePosition.row };
-  };
+  }, [menuItems]);
 
-  // Initialize menu items
+  // Initialize menu items first
   useEffect(() => {
     const sections = [
       { text: 'RESUME', color: 'text-red-500', path: '/resume' },
@@ -83,6 +78,13 @@ const Grid: React.FC = () => {
 
     setMenuItems([...sections, ...dummyGhosts]);
   }, []);
+
+  // Then set pacman position
+  useEffect(() => {
+    if (menuItems.length > 0) {
+      setPacmanPosition(getSafePacmanPosition());
+    }
+  }, [menuItems, getSafePacmanPosition]);
 
   // Handle keyboard controls
   useEffect(() => {
@@ -145,17 +147,18 @@ const Grid: React.FC = () => {
   }, [isMuted]);
 
   // Handle collisions
+  // Update collision detection to be more precise
   useEffect(() => {
     if (!canNavigate || isNavigating) return;
-
+  
     const checkCollision = () => {
       for (const item of menuItems) {
-        const distance = Math.sqrt(
-          Math.pow(pacmanPosition.x - item.position.col, 2) + 
-          Math.pow(pacmanPosition.y - item.position.row, 2)
-        );
-
-        if (distance < 1.5 && item.path) {
+        // Check for exact position match
+        if (
+          Math.round(pacmanPosition.x) === item.position.col && 
+          Math.round(pacmanPosition.y) === item.position.row && 
+          item.path
+        ) {
           setIsNavigating(true);
           setCanNavigate(false);
           if (!isMuted) {
@@ -171,7 +174,7 @@ const Grid: React.FC = () => {
         }
       }
     };
-
+  
     checkCollision();
   }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, isMuted]);
 
@@ -193,7 +196,7 @@ const Grid: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
-      <BackgroundMusic isGameScreen={true} />
+      <BackgroundMusic isGameScreen={true} isMuted={isMuted} />
       
       {/* Add mute button */}
       <button 

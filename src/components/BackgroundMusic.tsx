@@ -1,30 +1,50 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
-const BackgroundMusic: React.FC<{ isGameScreen: boolean }> = ({ isGameScreen }) => {
-  const startupSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pac-man-start.mp3'));
-  const themeSoundRef = useRef<HTMLAudioElement>(new Audio('/sounds/pacman_theme.mp3'));
+interface BackgroundMusicProps {
+  isGameScreen: boolean;
+  isMuted: boolean;
+}
+
+const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ isGameScreen, isMuted }) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const startupSound = startupSoundRef.current;
-    const themeSound = themeSoundRef.current;
+    const audio = new Audio(isGameScreen ? '/sounds/pacman_theme.mp3' : '/sounds/pac-man-start.mp3');
+    audio.volume = 0.3;
+    audio.loop = true;
+    audioRef.current = audio;
 
-    startupSound.volume = 0.3;
-    themeSound.volume = 0.3;
-    startupSound.loop = true;
-    themeSound.loop = true;
+    const handleUserInteraction = () => {
+      setIsReady(true);
+      document.removeEventListener('click', handleUserInteraction);
+    };
 
-    if (isGameScreen) {
-      startupSound.pause();
-      themeSound.play().catch(console.error);
-    } else {
-      startupSound.play().catch(console.error);
-    }
+    document.addEventListener('click', handleUserInteraction);
 
     return () => {
-      startupSound.pause();
-      themeSound.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+      document.removeEventListener('click', handleUserInteraction);
     };
   }, [isGameScreen]);
+
+  useEffect(() => {
+    if (!audioRef.current || !isReady) return;
+
+    if (isMuted) {
+      audioRef.current.pause();
+    } else {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Silently handle the error
+        });
+      }
+    }
+  }, [isMuted, isReady]);
 
   return null;
 };

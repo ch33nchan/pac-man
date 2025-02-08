@@ -1,21 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BackgroundMusic from './BackgroundMusic';
+import MuteButton from './MuteButton';
 
 interface WelcomeProps {
   onBegin: () => void;
 }
 
 const Welcome: React.FC<WelcomeProps> = ({ onBegin }) => {
+  const [isMuted, setIsMuted] = useState(false);
+
   const handleBegin = () => {
-    if (window.startThemeMusic) {
+    if (window.startThemeMusic && !isMuted) {
       window.startThemeMusic();
     }
     onBegin();
   };
 
+  const toggleMute = () => {
+    setIsMuted((prev: boolean) => !prev);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
-      <BackgroundMusic isGameScreen={false} />
+      <BackgroundMusic isGameScreen={false} isMuted={isMuted} />
+      <MuteButton isMuted={isMuted} onToggle={toggleMute} />
       <div className="relative bg-blue-900/60 p-16 w-[1000px] h-[600px] rounded-xl text-center 
                     border-[12px] border-blue-500/80 border-b-blue-700
                     shadow-[inset_0_0_50px_rgba(59,130,246,0.3),inset_0_0_100px_rgba(0,0,0,0.5)]
