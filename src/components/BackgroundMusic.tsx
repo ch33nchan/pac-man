@@ -9,15 +9,23 @@ const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ isGameScreen, isMuted
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const audio = new Audio(isGameScreen ? '/sounds/pacman_theme.mp3' : '/sounds/pac-man-start.mp3');
-    audio.volume = 0.3;
-    audio.loop = true;
-    audioRef.current = audio;
+    if (!audioRef.current) {
+      const audio = new Audio(isGameScreen ? '/sounds/pacman_theme.mp3' : '/sounds/pac-man-start.mp3');
+      audio.volume = 0.3;
+      audio.loop = true;
+      audioRef.current = audio;
+      
+      if (!isMuted) {
+        audio.play().catch(() => {});
+      }
+    }
 
-    if (!isMuted) {
-      audio.play().catch(() => {
-        // Silent catch for autoplay policy
-      });
+    if (audioRef.current) {
+      if (isMuted) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(() => {});
+      }
     }
 
     return () => {

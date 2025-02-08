@@ -179,7 +179,7 @@ const Grid: React.FC = () => {
             wakaSound.play().catch(console.error);
           }
         }
-      }
+      };
     };
 
     checkCollision();
@@ -211,7 +211,7 @@ const Grid: React.FC = () => {
           }, 1000);
           return;
         }
-      }
+      };
     };
   
     checkCollision();
@@ -233,6 +233,7 @@ const Grid: React.FC = () => {
     });
   };
 
+  // Update the JSX for ghost rendering
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
       <BackgroundMusic isGameScreen={true} isMuted={isMuted} />
@@ -290,6 +291,11 @@ const Grid: React.FC = () => {
                       {item.text}
                     </span>
                   </div>
+                </div>
+              )}
+              {item.path && (
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <span className="text-yellow-400 text-2xl">ᗧ</span>
                 </div>
               )}
             </div>
