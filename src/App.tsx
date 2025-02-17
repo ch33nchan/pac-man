@@ -6,20 +6,23 @@ import Resume from './components/pages/Resume';
 import Skills from './components/pages/Skills';
 import Projects from './components/pages/Projects';
 import Contact from './components/pages/Contact';
+import { VolumeProvider } from './context/VolumeContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/game" element={<Game />} /> {/* Ensure this route is set up */}
-        <Route path="/resume" element={<Resume />} />
-        <Route path="/skills" element={<Skills />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
+    <VolumeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/game" element={<Game />} /> {/* Ensure this route is set up */}
+          <Route path="/resume" element={<Resume />} />
+          <Route path="/skills" element={<Skills />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </VolumeProvider>
   );
 }
 

@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackgroundMusic from '../BackgroundMusic';
-import MuteButton from '../MuteButton';
+import VolumeControl from '../VolumeControl';
+import { useVolume } from '../../context/VolumeContext';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [isMuted, setIsMuted] = useState(false);
-
-  const toggleMute = () => {
-    setIsMuted((prev: boolean) => !prev);
-  };
+  const { volume, setVolume } = useVolume();
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
-      <BackgroundMusic isGameScreen={false} isMuted={isMuted} />
-      <MuteButton isMuted={isMuted} onToggle={toggleMute} />
+      <BackgroundMusic isGameScreen={false} volume={volume} />
+      <VolumeControl volume={volume} onVolumeChange={setVolume} />
       
       <div className="bg-black/50 px-16 py-8 rounded-xl border-4 border-blue-500/50 shadow-lg shadow-blue-500/20 max-w-2xl w-full mx-4">
         <h1 className="text-xl text-yellow-400 font-press-start mb-8 animate-pulse text-center tracking-wider">

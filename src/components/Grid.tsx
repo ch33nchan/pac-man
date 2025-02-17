@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackgroundMusic from './BackgroundMusic';
+import VolumeControl from './VolumeControl';
+import { useVolume } from '../context/VolumeContext';
+import { playSoundEffect } from '../utils/audio';
 
 
 interface MenuItem {
@@ -36,9 +39,9 @@ const getRandomPosition = (): Position => ({
 });
 
 const Grid: React.FC = () => {
+  const { volume, setVolume } = useVolume();
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [isMuted, setIsMuted] = useState(false);
   const [direction, setDirection] = useState('right');
   const [canNavigate, setCanNavigate] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -86,7 +89,7 @@ const Grid: React.FC = () => {
     }
   }, [menuItems, getSafePacmanPosition]);
 
-  // Update keyboard controls with new sound effects
+  // Update keyboard controls with volume
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       const speed = 1;
@@ -135,18 +138,26 @@ const Grid: React.FC = () => {
           break;
       }
     
-      if (moved && !isMuted) {
-        const moveSound = new Audio('/sounds/pacman_eatfruit.wav');
-        moveSound.volume = 0.2;
-        moveSound.play().catch(console.error);
+      if (moved && volume > 0) {
+        playSoundEffect('/sounds/pacman_eatfruit.wav', volume);
+      }
+    
+      // For ghost collision:
+      if (volume > 0) {
+        playSoundEffect('/sounds/pac_man_ghost.mp3', volume);
+      }
+    
+      // For waka sound:
+      if (volume > 0) {
+        playSoundEffect('/sounds/pac-man-waka-waka.mp3', volume);
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isMuted]);
+  }, [volume]);
 
-  // Update collision detection with new sounds
+  // Update collision detection with volume
   useEffect(() => {
     if (!canNavigate || isNavigating) return;
 
@@ -157,96 +168,36 @@ const Grid: React.FC = () => {
           Math.pow(pacmanPosition.y - item.position.row, 2)
         );
 
-        if (distance < 1.5) {
-          if (item.path) {
+        if (distance < 2) {
+          if (item.path && distance < 1) {
             setIsNavigating(true);
             setCanNavigate(false);
-            if (!isMuted) {
+            if (volume > 0) {
               const ghostSound = new Audio('/sounds/pac_man_ghost.mp3');
-              ghostSound.volume = 0.3;
+              ghostSound.volume = volume;
               ghostSound.play().catch(console.error);
             }
             
-            // Reduced delay
             setTimeout(() => {
               navigate(item.path!);
-            }, 500); // Reduced from 1000 to 500
+            }, 500);
             return;
-          } else if (distance < 2.5) {
-            // Play waka sound when approaching non-path ghosts
+          } else if (volume > 0) {
             const wakaSound = new Audio('/sounds/pac-man-waka-waka.mp3');
-            wakaSound.volume = 0.2;
+            wakaSound.volume = volume;
             wakaSound.play().catch(console.error);
           }
         }
-      };
-    };
-
-    checkCollision();
-  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, isMuted]);
-
-  // Handle collisions
-  // Update collision detection to be more precise
-  useEffect(() => {
-    if (!canNavigate || isNavigating) return;
-  
-    const checkCollision = () => {
-      for (const item of menuItems) {
-        // Check for exact position match
-        if (
-          Math.round(pacmanPosition.x) === item.position.col && 
-          Math.round(pacmanPosition.y) === item.position.row && 
-          item.path
-        ) {
-          setIsNavigating(true);
-          setCanNavigate(false);
-          if (!isMuted) {
-            const deathSound = new Audio('/sounds/pac-man-dies-2.mp3');
-            deathSound.volume = 0.3;
-            deathSound.play().catch(console.error);
-          }
-          
-          setTimeout(() => {
-            navigate(item.path!);
-          }, 1000);
-          return;
-        }
-      };
-    };
-  
-    checkCollision();
-  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, isMuted]);
-
-  // Reset navigation state
-  useEffect(() => {
-    setIsNavigating(false);
-    setCanNavigate(true);
-  }, []);
-
-  const toggleMute = () => {
-    setIsMuted(prev => {
-      const newMuted = !prev;
-      if (window.toggleSound) {
-        window.toggleSound();
       }
-      return newMuted;
-    });
-  };
+    };
 
-  // Update the JSX for ghost rendering
+    checkCollision();
+  }, [pacmanPosition, menuItems, navigate, canNavigate, isNavigating, volume]);
+
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
-      <BackgroundMusic isGameScreen={true} isMuted={isMuted} />
-      
-      {/* Add mute button */}
-      <button 
-        onClick={toggleMute}
-        className="fixed top-4 right-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20"
-      >
-        <span className="text-yellow-400 font-press-start text-sm">
-          {isMuted ? '🔇' : '🔊'}
-        </span>
-      </button>
+      <BackgroundMusic isGameScreen={true} volume={volume} />
+      <VolumeControl volume={volume} onVolumeChange={setVolume} />
 
       <div className="fixed top-4 left-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20">
         <h3 className="text-yellow-400 font-press-start text-sm mb-2">ARCADE CONTROLS</h3>
@@ -273,8 +224,8 @@ const Grid: React.FC = () => {
             key={`ghost-${index}`}
             className={`absolute ${item.color} flex flex-col items-center z-20`}
             style={{
-              left: `${(item.position.col / 15) * 100}%`,
-              top: `${(item.position.row / 15) * 100}%`,
+              left: `${Math.round(item.position.col) / 15 * 100}%`,
+              top: `${Math.round(item.position.row) / 15 * 100}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
@@ -295,7 +246,7 @@ const Grid: React.FC = () => {
               )}
               {item.path && (
                 <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                  <span className="text-yellow-400 text-2xl">ᗧ</span>
+                  <span className="text-yellow-400 text-2xl animate-bounce">ᗧ</span>
                 </div>
               )}
             </div>

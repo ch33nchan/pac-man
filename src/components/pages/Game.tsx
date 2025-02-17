@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import Grid from '../Grid';
 import BackgroundMusic from '../BackgroundMusic';
-import MuteButton from '../MuteButton';
+import VolumeControl from '../VolumeControl';
 
 const Game: React.FC = () => {
-  const [isMuted, setIsMuted] = useState(false);
-
-  const toggleMute = () => {
-    setIsMuted((prev: boolean) => !prev);
-  };
+  const [volume, setVolume] = useState(0.3);
 
   return (
     <div className="w-full h-screen overflow-hidden bg-black flex items-center justify-center">
-      <BackgroundMusic isGameScreen={true} isMuted={isMuted} />
-      <MuteButton isMuted={isMuted} onToggle={toggleMute} />
+      <BackgroundMusic isGameScreen={true} volume={volume} />
+      <VolumeControl volume={volume} onVolumeChange={setVolume} />
       <Grid />
     </div>
   );
