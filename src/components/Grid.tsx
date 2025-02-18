@@ -6,7 +6,6 @@ import VolumeControl from './VolumeControl';
 import { useVolume } from '../context/VolumeContext';
 import { playSoundEffect } from '../utils/audio';
 
-
 interface MenuItem {
   type: string;
   text: string;
@@ -52,7 +51,13 @@ const Grid: React.FC = () => {
     let safePosition: Position = { row: -1, col: -1 };
     do {
       const position = getRandomPosition();
-      if (!menuItems.some(item => Math.abs(item.position.row - position.row) < 2 && Math.abs(item.position.col - position.col) < 2)) {
+      if (
+        !menuItems.some(
+          (item) =>
+            Math.abs(item.position.row - position.row) < 2 &&
+            Math.abs(item.position.col - position.col) < 2
+        )
+      ) {
         safePosition = position;
       }
     } while (safePosition.row === -1 && safePosition.col === -1);
@@ -66,7 +71,7 @@ const Grid: React.FC = () => {
       { text: 'SKILLS', color: 'text-blue-500', path: '/skills' },
       { text: 'PROJECTS', color: 'text-pink-500', path: '/projects' },
       { text: 'CONTACT', color: 'text-orange-500', path: '/contact' }
-    ].map(item => ({
+    ].map((item) => ({
       ...item,
       position: getRandomPosition(),
       type: 'ᗣ'
@@ -95,11 +100,11 @@ const Grid: React.FC = () => {
       const speed = 1;
       let moved = false;
 
-      switch(e.key) {
+      switch (e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          setPacmanPosition(prev => {
+          setPacmanPosition((prev) => {
             const newY = Math.max(prev.y - speed, 0);
             moved = newY !== prev.y;
             return { ...prev, y: newY };
@@ -109,7 +114,7 @@ const Grid: React.FC = () => {
         case 'ArrowDown':
         case 's':
         case 'S':
-          setPacmanPosition(prev => {
+          setPacmanPosition((prev) => {
             const newY = Math.min(prev.y + speed, 14);
             moved = newY !== prev.y;
             return { ...prev, y: newY };
@@ -119,7 +124,7 @@ const Grid: React.FC = () => {
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          setPacmanPosition(prev => {
+          setPacmanPosition((prev) => {
             const newX = Math.max(prev.x - speed, 0);
             moved = newX !== prev.x;
             return { ...prev, x: newX };
@@ -129,7 +134,7 @@ const Grid: React.FC = () => {
         case 'ArrowRight':
         case 'd':
         case 'D':
-          setPacmanPosition(prev => {
+          setPacmanPosition((prev) => {
             const newX = Math.min(prev.x + speed, 14);
             moved = newX !== prev.x;
             return { ...prev, x: newX };
@@ -137,16 +142,16 @@ const Grid: React.FC = () => {
           setDirection('right');
           break;
       }
-    
+
       if (moved && volume > 0) {
         playSoundEffect('/sounds/pacman_eatfruit.wav', volume);
       }
-    
+
       // For ghost collision:
       if (volume > 0) {
         playSoundEffect('/sounds/pac_man_ghost.mp3', volume);
       }
-    
+
       // For waka sound:
       if (volume > 0) {
         playSoundEffect('/sounds/pac-man-waka-waka.mp3', volume);
@@ -164,8 +169,8 @@ const Grid: React.FC = () => {
     const checkCollision = () => {
       for (const item of menuItems) {
         const distance = Math.sqrt(
-          Math.pow(pacmanPosition.x - item.position.col, 2) + 
-          Math.pow(pacmanPosition.y - item.position.row, 2)
+          Math.pow(pacmanPosition.x - item.position.col, 2) +
+            Math.pow(pacmanPosition.y - item.position.row, 2)
         );
 
         if (distance < 2) {
@@ -177,7 +182,7 @@ const Grid: React.FC = () => {
               ghostSound.volume = volume;
               ghostSound.play().catch(console.error);
             }
-            
+
             setTimeout(() => {
               navigate(item.path!);
             }, 500);
@@ -196,7 +201,8 @@ const Grid: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen bg-black p-8 flex items-center justify-center">
-      <BackgroundMusic isGameScreen={true} volume={volume} />
+      {/* Updated BackgroundMusic call with isMuted property added */}
+      <BackgroundMusic isGameScreen={true} isMuted={false} volume={volume} />
       <VolumeControl volume={volume} onVolumeChange={setVolume} />
 
       <div className="fixed top-4 left-4 z-50 bg-black p-4 rounded-lg border-2 border-yellow-400 shadow-lg shadow-yellow-400/20">
@@ -212,7 +218,7 @@ const Grid: React.FC = () => {
       <div className="w-[800px] h-[800px] relative">
         <div className="absolute inset-0 grid grid-cols-15 grid-rows-15 bg-black border-4 border-maze-blue">
           {Array.from({ length: 225 }).map((_, index) => (
-            <div 
+            <div
               key={`cell-${index}`}
               className="border border-maze-blue/30 bg-black relative"
             />
@@ -224,20 +230,22 @@ const Grid: React.FC = () => {
             key={`ghost-${index}`}
             className={`absolute ${item.color} flex flex-col items-center z-20`}
             style={{
-              left: `${Math.round(item.position.col) / 15 * 100}%`,
-              top: `${Math.round(item.position.row) / 15 * 100}%`,
+              left: `${(Math.round(item.position.col) / 15) * 100}%`,
+              top: `${(Math.round(item.position.row) / 15) * 100}%`,
               transform: 'translate(-50%, -50%)'
             }}
           >
             <div className={`relative ${item.path ? 'animate-pulse' : ''}`}>
-              <span className={`text-4xl animate-ghost-float transition-all duration-300 inline-block
-                            ${item.path ? 'hover:scale-110 hover:text-yellow-400' : ''}`}>
+              <span
+                className={`text-4xl animate-ghost-float transition-all duration-300 inline-block ${
+                  item.path ? 'hover:scale-110 hover:text-yellow-400' : ''
+                }`}
+              >
                 {item.type}
               </span>
               {item.text && (
                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-max">
-                  <div className="bg-yellow-400 px-3 py-1 rounded-lg border-2 border-yellow-600 
-                              shadow-lg shadow-yellow-400/50">
+                  <div className="bg-yellow-400 px-3 py-1 rounded-lg border-2 border-yellow-600 shadow-lg shadow-yellow-400/50">
                     <span className="text-xs font-press-start text-black whitespace-nowrap">
                       {item.text}
                     </span>
@@ -253,15 +261,19 @@ const Grid: React.FC = () => {
           </div>
         ))}
 
-        <div 
+        <div
           className="absolute text-yellow-400 text-4xl animate-pacman-chomp z-30"
           style={{
             left: `${(pacmanPosition.x / 15) * 100}%`,
             top: `${(pacmanPosition.y / 15) * 100}%`,
             transform: `translate(-50%, -50%) rotate(${
-              direction === 'up' ? '-90deg' : 
-              direction === 'down' ? '90deg' : 
-              direction === 'left' ? '180deg' : '0deg'
+              direction === 'up'
+                ? '-90deg'
+                : direction === 'down'
+                ? '90deg'
+                : direction === 'left'
+                ? '180deg'
+                : '0deg'
             })`
           }}
         >
